@@ -30,6 +30,9 @@ func main() {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
+	defer db.Close()
+	log.Println("database connetion pool initialized")
+
 	store := store.NewStorage(db)
 
 	app := &application{
