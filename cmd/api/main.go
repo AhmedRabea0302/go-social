@@ -1,11 +1,10 @@
 package main
 
 import (
-	"log"
-
 	"github.com/AhmedRabea0302/go-social/internal/db"
 	"github.com/AhmedRabea0302/go-social/internal/env"
 	"github.com/AhmedRabea0302/go-social/internal/store"
+	"go.uber.org/zap"
 )
 
 const version = "0.0.1"
@@ -40,6 +39,11 @@ func main() {
 		env: env.GetString("ENV", "development"),
 	}
 
+	// Logger
+	logger := zap.Must(zap.NewProduction()).Sugar()
+	defer logger.Sync()
+
+	// Database
 	db, err := db.New(
 		cfg.db.addr,
 		cfg.db.maxOpenConns,
@@ -48,21 +52,22 @@ func main() {
 	)
 
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		logger.Fatal(err)
 	}
 
 	defer db.Close()
-	log.Println("database connetion pool initialized")
+	logger.Info("database connetion pool initialized")
 
 	store := store.NewStorage(db)
 
 	app := &application{
 		config: cfg,
 		store:  store,
+		logger: logger,
 	}
 
 	// Add Registered Routes
 	mux := app.mount()
 
-	log.Fatal(app.run(mux))
+	logger.Fatal(app.run(mux))
 }
