@@ -5,7 +5,7 @@ import (
 )
 
 func (app *application) intetrnalServerError(w http.ResponseWriter, r *http.Request, err error) {
-	app.logger.Errorw("internal error", "method", r.Method, "path", r.URL.Path, "error", err.Error())
+	app.logger.Errorf("internal error", "method", r.Method, "path", r.URL.Path, "error", err.Error())
 
 	writeJSONError(w, http.StatusInternalServerError, "the server encountered an error")
 }

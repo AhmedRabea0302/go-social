@@ -1,0 +1,4 @@
+ALTER TABLE
+    users
+ADD
+    COLUMN is_active BOOL NOT NULL DEFAULT FALSE;
