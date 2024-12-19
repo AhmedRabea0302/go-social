@@ -15,6 +15,11 @@ type RegisterUserPayload struct {
 	Password string `json:"password" validate:"required,min=3,max=72"`
 }
 
+type userWithToken struct {
+	*store.User
+	Token string `json:"token"`
+}
+
 // RegisterUser gdoc
 //
 //	@Summary		Registers a user
@@ -23,7 +28,7 @@ type RegisterUserPayload struct {
 //	@Accept			json
 //	@Produce		json
 //	@Param			payload	body		RegisterUserPayload	true	"User Credentials"
-//	@Success		201		{object}	store.User			"User registered"
+//	@Success		201		{object}	userWithToken		"User registered"
 //	@Failure		400		{object}	error				"User payload missing"
 //	@Failure		500		{object}	error				"User not found"
 //	@Security		ApiKeyAuth
@@ -72,8 +77,13 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		}
 	}
 
+	userWithToken := userWithToken{
+		User:  user,
+		Token: plainToken,
+	}
+
 	// send the mail
-	if err := app.jsonResponse(w, http.StatusCreated, nil); err != nil {
+	if err := app.jsonResponse(w, http.StatusCreated, userWithToken); err != nil {
 		app.intetrnalServerError(w, r, err)
 		return
 	}
