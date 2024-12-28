@@ -3,8 +3,10 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"net/http"
 
+	"github.com/AhmedRabea0302/go-social/internal/mailer"
 	"github.com/AhmedRabea0302/go-social/internal/store"
 	"github.com/google/uuid"
 )
@@ -47,7 +49,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 
 	user := &store.User{
 		Username: payload.Username,
-		Email:    payload.Password,
+		Email:    payload.Email,
 	}
 
 	// Hash the user password
@@ -81,8 +83,32 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		User:  user,
 		Token: plainToken,
 	}
+	activationURL := fmt.Sprintf("%s/confirm/%s", app.config.frontendURL, plainToken)
 
 	// send the mail
+	isProdEnv := app.config.env == "production"
+	vars := struct {
+		Username      string
+		ActivationURL string
+	}{
+		Username:      user.Username,
+		ActivationURL: activationURL,
+	}
+	err = app.mailer.Send(mailer.UserWelcomeTemplate, user.Username, user.Email, vars, !isProdEnv)
+	if err != nil {
+		app.logger.Errorw("error sending welcome message email", "error", err)
+
+		// rollback user creation if email fails
+		ctx := r.Context()
+		if err = app.store.Users.Delete(ctx, user.ID); err != nil {
+			app.logger.Errorw("error deleting user", "error", err)
+			return
+		}
+
+		app.intetrnalServerError(w, r, err)
+		return
+	}
+
 	if err := app.jsonResponse(w, http.StatusCreated, userWithToken); err != nil {
 		app.intetrnalServerError(w, r, err)
 		return
