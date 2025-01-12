@@ -6,6 +6,7 @@ import (
 
 	"text/template"
 
+	"github.com/AhmedRabea0302/go-social/internal/env"
 	gomail "gopkg.in/mail.v2"
 )
 
@@ -51,7 +52,10 @@ func (m mailtrapClient) Send(templateFile, username, email string, data any, isS
 
 	message.AddAlternative("text/html", body.String())
 
-	dialer := gomail.NewDialer("sandbox.smtp.mailtrap.io", 587, "259e47c7632c8e", "2ca6c3613c3f2b")
+	mailtrapUsername := env.GetString("MAILTRAP_USERNAME_KEY", "")
+	mailtrapPassword := env.GetString("MAILTRAP_PASSWORD_KEY", "")
+
+	dialer := gomail.NewDialer("sandbox.smtp.mailtrap.io", 587, mailtrapUsername, mailtrapPassword)
 
 	if err := dialer.DialAndSend(message); err != nil {
 		return -1, err
