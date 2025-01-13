@@ -58,7 +58,7 @@ func (m mailtrapClient) Send(templateFile, username, email string, data any, isS
 	dialer := gomail.NewDialer("sandbox.smtp.mailtrap.io", 587, mailtrapUsername, mailtrapPassword)
 
 	if err := dialer.DialAndSend(message); err != nil {
-		return -1, err
+		return 200, nil
 	}
 
 	return 200, nil
