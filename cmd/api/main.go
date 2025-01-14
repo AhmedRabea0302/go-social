@@ -3,6 +3,7 @@ package main
 import (
 	"time"
 
+	"github.com/AhmedRabea0302/go-social/internal/auth"
 	"github.com/AhmedRabea0302/go-social/internal/db"
 	"github.com/AhmedRabea0302/go-social/internal/env"
 	"github.com/AhmedRabea0302/go-social/internal/mailer"
@@ -56,6 +57,11 @@ func main() {
 				user: env.GetString("AUTH_BASIC_USER", "admin"),
 				pass: env.GetString("AUTH_BASIC_PASS", "admin"),
 			},
+			token: tokenConfig{
+				secret: env.GetString("AUTH_TOKEN_SECRET", "example"),
+				exp:    time.Hour * 24 * 3, // 3 days
+				iss:    "fadlovichGopherSocial",
+			},
 		},
 	}
 
@@ -85,11 +91,18 @@ func main() {
 		logger.Fatal(err)
 	}
 
+	jwtAuthenticator := auth.NewJWTAuthenticator(
+		cfg.auth.token.secret,
+		cfg.auth.token.iss,
+		cfg.auth.token.iss,
+	)
+
 	app := &application{
-		config: cfg,
-		store:  store,
-		logger: logger,
-		mailer: mailTrap,
+		config:        cfg,
+		store:         store,
+		logger:        logger,
+		mailer:        mailTrap,
+		authenticator: jwtAuthenticator,
 	}
 
 	// Add Registered Routes
