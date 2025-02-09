@@ -56,7 +56,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 
 	// Hash the user password
 	if err := user.Password.Set(payload.Password); err != nil {
-		app.intetrnalServerError(w, r, err)
+		app.internalServerError(w, r, err)
 		return
 	}
 
@@ -77,7 +77,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 			app.badRequestResponse(w, r, err)
 			return
 		default:
-			app.intetrnalServerError(w, r, err)
+			app.internalServerError(w, r, err)
 			return
 		}
 	}
@@ -109,14 +109,14 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		app.intetrnalServerError(w, r, err)
+		app.internalServerError(w, r, err)
 		return
 	}
 
 	app.logger.Infow("Email sent", "status code", status)
 
 	if err := app.jsonResponse(w, http.StatusCreated, userWithToken); err != nil {
-		app.intetrnalServerError(w, r, err)
+		app.internalServerError(w, r, err)
 		return
 	}
 }
@@ -159,7 +159,7 @@ func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Reques
 		case store.ErrorNotFound:
 			app.unauthorizedBasicErrorResponse(w, r, err)
 		default:
-			app.intetrnalServerError(w, r, err)
+			app.internalServerError(w, r, err)
 		}
 	}
 
@@ -176,13 +176,13 @@ func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Reques
 	// sign the token
 	token, err := app.authenticator.GenerateToken(claims)
 	if err != nil {
-		app.intetrnalServerError(w, r, err)
+		app.internalServerError(w, r, err)
 		return
 	}
 
 	// send the token
 	if err := app.jsonResponse(w, http.StatusCreated, token); err != nil {
-		app.intetrnalServerError(w, r, err)
+		app.internalServerError(w, r, err)
 		return
 	}
 }
