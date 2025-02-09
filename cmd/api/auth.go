@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -161,6 +162,12 @@ func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Reques
 		default:
 			app.internalServerError(w, r, err)
 		}
+	}
+
+	err = user.CompareHashedPassword(user.Password, payload.Password)
+	if err != nil {
+		app.unauthorizedBasicErrorResponse(w, r, errors.New("invalid username or password"))
+		return
 	}
 
 	// generate the token -> add claims
